@@ -9,26 +9,26 @@ services:
       - ../data:/app/data
     environment:
       - TZ=Etc/UTC
-    depends_on:
-      - influxdb
+    # depends_on:
+    #   - influxdb
     tty: true
     stdin_open: true
     # For GUI, ensure proper X forwarding. On Linux host:
     # xhost +local:docker
     # Then run container and you can exec into it to see Zenity windows.
 
-  influxdb:
-    image: influxdb:1.8
-    container_name: influxdb
-    environment:
-      - INFLUXDB_DB=metrics
-      - INFLUXDB_ADMIN_ENABLED=true
-      - INFLUXDB_USER=mrz
-      - INFLUXDB_USER_PASSWORD=kokomama
-    volumes:
-      - influxdb_data:/var/lib/influxdb
-    ports:
-      - "8086:8086"
+#   influxdb:
+#     image: influxdb:1.8
+#     container_name: influxdb
+#     environment:
+#       - INFLUXDB_DB=metrics
+#       - INFLUXDB_ADMIN_ENABLED=true
+#       - INFLUXDB_USER=mrz
+#       - INFLUXDB_USER_PASSWORD=kokomama
+#     volumes:
+#       - influxdb_data:/var/lib/influxdb
+#     ports:
+#       - "8086:8086"
 
-volumes:
-  influxdb_data:
+# volumes:
+#   influxdb_data:

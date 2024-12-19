@@ -1,0 +1,83 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background-color: #1e1e1e; 
+    color: #ffffff;
+  }
+  
+  .header {
+    padding: 20px;
+    background: #252526; 
+    border-bottom: 1px solid #333;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .report-controls {
+    display: flex;
+    align-items: center;
+  }
+  
+  .report-controls button, .report-controls input {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background: #3c3c3c;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 4px;
+  }
+  
+  .report-controls button:hover, .report-controls input:focus {
+    background: #484848;
+  }
+  
+  .chart-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    padding: 20px;
+  }
+  
+  .chart-box {
+    background: #2d2d2d; 
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+    flex: 1;
+    min-width: 300px;
+  }
+  
+  h1, h2, h3 {
+    color: #cfcfcf; 
+  }
+  
+  :root {
+    --cpu-color: #82b1ff;
+    --mem-color: #ffb2b2;
+    --disk-color: #b0ffb0; 
+    --gpu-color: #ffaaff; 
+  }
+  
+  .report-list {
+    padding: 20px;
+  }
+  
+  .report-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .report-list ul li {
+    margin: 5px 0;
+  }
+  
+  .report-list a {
+    color: #82b1ff;
+    text-decoration: none;
+  }
+  
+  .report-list a:hover {
+    text-decoration: underline;
+  }
+  

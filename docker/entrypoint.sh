@@ -13,11 +13,21 @@ cd /app
 # Show ASCII banner
 ./scripts/ascii_banner.sh
 
-# Setup InfluxDB
-./scripts/setup_influxdb.sh
+# # Setup InfluxDB
+# ./scripts/setup_influxdb.sh
 
 # Run initial metrics collection
 ./scripts/run_all.sh
+
+
+# Update metrics.json periodically
+while true; do
+  ./scripts/metrics_to_json.sh
+  sleep 5
+done &
+
+# Start Node.js server
+node web/server.js &
 
 # Generate initial reports
 ./scripts/generate_reports.sh

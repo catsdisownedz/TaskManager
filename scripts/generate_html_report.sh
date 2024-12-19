@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# generate_markdown_report.sh
-# Generates a markdown report by substituting latest values into the template.
+# generate_html_report.sh
+# Generates a timestamped HTML report using report_template.html
 
 LOG_FILE="../data/logs/system_metrics.log"
-TEMPLATE="./templates/report_template.md"
+TEMPLATE="../reports/templates/report_template.html"
+OUTPUT_DIR="../reports/html"
+TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+OUTPUT_FILE="${OUTPUT_DIR}/report_${TIMESTAMP}.html"
 
 DATE=$(date +"%Y-%m-%d %H:%M:%S")
 CPU_USAGE=$(grep CPU_USAGE $LOG_FILE | tail -1 | awk -F'|' '{print $3}')
@@ -16,6 +19,8 @@ NET_RX_BYTES=$(grep NET_RX_BYTES $LOG_FILE | tail -1 | awk -F'|' '{print $3}')
 NET_TX_BYTES=$(grep NET_TX_BYTES $LOG_FILE | tail -1 | awk -F'|' '{print $3}')
 LOAD_AVG=$(grep LOAD_AVG $LOG_FILE | tail -1 | awk -F'|' '{print $3}')
 
+mkdir -p $OUTPUT_DIR
+
 sed -e "s/{{DATE}}/$DATE/g" \
     -e "s/{{CPU_USAGE}}/$CPU_USAGE/g" \
     -e "s/{{CPU_TEMP}}/$CPU_TEMP/g" \
@@ -26,4 +31,4 @@ sed -e "s/{{DATE}}/$DATE/g" \
     -e "s/{{NET_RX_BYTES}}/$NET_RX_BYTES/g" \
     -e "s/{{NET_TX_BYTES}}/$NET_TX_BYTES/g" \
     -e "s/{{LOAD_AVG}}/$LOAD_AVG/g" \
-    "$TEMPLATE"
+    "$TEMPLATE" > "$OUTPUT_FILE"
