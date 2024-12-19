@@ -10,7 +10,7 @@ source ./utils.sh
 
 
 
-# #!/bin/bash
+
 # function main(){
 #     echo "Resources:\
 #     1)CPU performance and temperature\
