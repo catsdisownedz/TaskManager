@@ -14,13 +14,13 @@
 
 
 function get_cpu_performance(){
-    top -bn1 | head -n 3
-   
+    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+      
 }
 
 
 function get_cpu_temp(){
-    sensors 
+    sensors | grep 'temp1:' | cut -d ':' -f2
     # temp_line=$(sensors | grep -m1 "Package id 0: ")
     # if [ -z "$temp_line" ]; then
     #     echo "CPU Temperature info not found."
@@ -58,8 +58,33 @@ function get_gpu_info() {
     #     echo
     #     echo "For more detailed GPU stats, consider installing specific GPU tools like 'nvidia-smi' or 'radeontop'."
     # fi
-    lspci | grep -i 'vga\|3d\|display'
+    # lspci | grep -i 'vga\|3d\|display'
     # lspci | head -n 3
+    if lspci | grep -i nvidia > /dev/null 2>&1; then
+        # NVIDIA GPU
+        output=$(nvidia-smi)
+        zenity --info --text="<b>NVIDIA GPU Information</b>\n\n$output"
+    elif lspci | grep -i 'amd' | grep -i 'vga' > /dev/null 2>&1; then
+        # AMD GPU
+        # Ensure radeontop is installed
+        output=$(radeontop -b -l 1 2>/dev/null)
+        if [ -z "$output" ]; then
+            zenity --info --text="AMD GPU detected but radeontop is not installed or failed to run."
+        else
+            zenity --info --text="<b>AMD GPU Information (radeontop)</b>\n\n$output"
+        fi
+    elif lspci | grep -i 'intel' | grep -i 'vga' > /dev/null 2>&1; then
+        # Intel Integrated GPU
+        # intel_gpu_top should be installed for detailed metrics
+        output=$(intel_gpu_top -l 1 2>/dev/null)
+        if [ -z "$output" ]; then
+            zenity --info --text="Intel GPU detected but intel_gpu_top is not installed or failed to run."
+        else
+            zenity --info --text="<b>Intel GPU Information</b>\n\n$output"
+        fi
+    else
+        zenity --info --text="No supported GPU detected or tools not installed."
+    fi
    
     
 }
@@ -115,7 +140,7 @@ function systemMetrics() {
     case $resource in
         "1")
             data=$(get_cpu_performance)
-            display_data "CPU Performance" "$data"
+            display_data "CPU Performance" "CPU usage: $data %"
             ;;
         "2")
             data=$(get_cpu_temp)
