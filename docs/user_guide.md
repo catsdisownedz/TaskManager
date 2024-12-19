@@ -1,18 +1,20 @@
+
+**project/docs/user_guide.md**
+```markdown
 # User Guide
 
-## Running the Scripts
-- To collect metrics:
-    `./scripts/run_all.sh`
-- To view the dashboard:
-    `./dashboard/dashboard.sh`
+**What is this file?**
+- Explains how to use the system after setup.
 
+    Once containers are up:
+    - The dashboard will run automatically.
+    - Use the GUI menus to:
+    - View live metrics (updates every second).
+    - Generate and view reports (Markdown/HTML).
+    - Search historical data by entering timestamps.
+    - Use "Back" buttons to return to the main menu.
+    - The system continuously collects data in the background.
 
-## Generating Reports
-- Markdown report:
-    `./reports/generate_markdown_report.sh > report.md`
-- HTML report:
-    `./reports/generate_html_report.sh > report.html`
+    Reports are stored in `reports/` directory. Historical data queries are handled by Python and InfluxDB. No manual intervention needed.
 
-
-## Historical Data
-Historical metrics and logs are stored in `data/logs` and `data/historical_data.db`. You can also configure InfluxDB if desired.
+    That's it! Just run `docker-compose up` and enjoy the experience.

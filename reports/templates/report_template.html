@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>System Metrics Report</title>
+<style>
+  body {
+    background-color: #1e1e1e;
+    color: #cfcfcf;
+    font-family: monospace;
+  }
+  h1, h2 {
+    color: #FFA500; /* orange headings */
+  }
+</style>
+</head>
+<body>
+<h1>System Metrics Report</h1>
+<p><strong>Date:</strong> {{DATE}}</p>
+<h2>CPU</h2>
+<p><strong>Usage:</strong> {{CPU_USAGE}}%</p>
+<p><strong>Temperature:</strong> {{CPU_TEMP}}°C</p>
+
+<h2>Memory</h2>
+<p><strong>Usage:</strong> {{MEM_USAGE}}%</p>
+
+<h2>Disk</h2>
+<p><strong>Usage:</strong> {{DISK_USAGE}}%</p>
+<p><strong>SMART Status:</strong> {{DISK_SMART}}</p>
+
+<h2>GPU</h2>
+<p><strong>Usage:</strong> {{GPU_UTIL}}%</p>
+
+<h2>Network</h2>
+<p><strong>RX Bytes:</strong> {{NET_RX_BYTES}}</p>
+<p><strong>TX Bytes:</strong> {{NET_TX_BYTES}}</p>
+
+<h2>Load</h2>
+<p><strong>Load Average:</strong> {{LOAD_AVG}}</p>
+</body>
+</html>
