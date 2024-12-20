@@ -34,6 +34,9 @@ function get_disk_usage(){
     # df -h | column -t 
     df -h --total | head -n 1 
     df -h --total |tail -n 1
+    df -h --total | awk '/^total/ {print "Used Disk: " $3 " / " $2}'
+
+
 }
 
 
@@ -44,7 +47,7 @@ function get_smart_status(){
 
 function get_memory_usage(){
     free -h #| column -t
-    free -h | awk '/^Mem:/ {print "Used RAM: "$3 "/" $2}'
+    free -h | awk '/^Mem:/ {print "Used RAM: "$3 " / " $2}'
 
 }
 
