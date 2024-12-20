@@ -1,0 +1,55 @@
+.report-list ul li {
+    margin: 5px 0;
+    font-family: 'Tiny5', sans-serif;
+    transition: background-color 0.2s;
+    position: relative;
+    padding: 5px;
+    border-radius: 4px;
+  }
+  
+  .report-list ul li:hover {
+    background-color: #e6e6fa; /* Lavender hover color */
+    color: #1e1e1e;
+  }
+  
+  /* Link styling inside the li */
+  .report-list ul li a {
+    color: #82b1ff;
+    text-decoration: none;
+  }
+  
+  .report-list ul li a:hover {
+    text-decoration: underline;
+    color: #ffaaff;
+  }
+  
+  /* Hidden content area that shows when .expanded is applied */
+  .report-list ul li .report-content {
+    display: none;
+    margin-top: 10px;
+    font-size: 14px;
+    background: #2d2d2d;
+    border-radius: 4px;
+    padding: 10px;
+    color: #ffffff;
+    font-family: 'Doto', sans-serif;
+  }
+  
+  /* When the list item has .expanded, show the content */
+  .report-list ul li.expanded .report-content {
+    display: block;
+  }
+  
+  /* Inside the report content, you can style headings or paragraphs */
+  .report-list ul li .report-content h3 {
+    margin-top: 0;
+    color: #ffaaff;
+    font-family: 'Micro 5', sans-serif;
+  }
+  
+  .report-list ul li .report-content p {
+    margin: 5px 0;
+    color: #cfcfcf;
+    font-family: 'Tiny5', sans-serif;
+  }
+  

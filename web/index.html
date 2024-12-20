@@ -3,44 +3,46 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<link rel="stylesheet" href="styles.css"/>
 <title>Task Manager Dashboard</title>
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Micro+5&family=Tiny5&family=Doto&family=Pixelify+Sans&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js" defer></script>
 </head>
 <body>
 <div class="header">
   <h1>Real-Time System Metrics</h1>
   <div class="report-controls">
     <button id="generateReportBtn">Generate Report</button>
-    <button id="toggleReportsBtn">Show/Hide Reports</button>
-    <input type="text" id="searchInput" placeholder="Search Reports...">
+    <a href="reports.html" class="report-link">View Reports</a>
   </div>
 </div>
 
 <div class="chart-container">
-  <div class="chart-box">
+  <div class="chart-box" data-chart="cpu">
     <h2>CPU Usage</h2>
     <canvas id="cpuChart"></canvas>
+    <div class="chart-details"></div>
   </div>
-  <div class="chart-box">
+  <div class="chart-box" data-chart="memory">
     <h2>Memory Usage</h2>
     <canvas id="memChart"></canvas>
+    <div class="chart-details"></div>
   </div>
-  <div class="chart-box">
+  <div class="chart-box" data-chart="disk">
     <h2>Disk Usage</h2>
     <canvas id="diskChart"></canvas>
+    <div class="chart-details"></div>
   </div>
-  <div class="chart-box">
+  <div class="chart-box" data-chart="gpu">
     <h2>GPU Usage</h2>
     <canvas id="gpuChart"></canvas>
+    <div class="chart-details"></div>
   </div>
 </div>
-
-<div id="reportList" class="report-list" style="display:none;">
-  <h2>Available Reports</h2>
-  <ul id="reportUl"></ul>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="script.js"></script>
 </body>
 </html>

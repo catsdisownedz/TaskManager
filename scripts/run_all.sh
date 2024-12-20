@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 # run_all.sh
-# Runs all metric collection scripts and checks alerts.
-
-./collect_cpu.sh
-./collect_gpu.sh
-./collect_disk.sh
-./collect_memory.sh
-./collect_network.sh
-./collect_system_load.sh
-./alert.sh
+# run_all.sh
+./scripts/collect_cpu.sh
+./scripts/collect_gpu.sh
+./scripts/collect_disk.sh
+./scripts/collect_memory.sh
+./scripts/collect_network.sh
+./scripts/collect_system_load.sh
+./scripts/alert.sh
