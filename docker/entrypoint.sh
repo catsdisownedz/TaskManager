@@ -1,38 +1,32 @@
 #!/usr/bin/env bash
 # entrypoint.sh
-# This script runs when the container starts.
-# It:
-# 1. Prints ASCII banner.
-# 2. Sets up InfluxDB database.
-# 3. Runs initial metric collection.
-# 4. Generates initial reports.
-# 5. Launches the GUI dashboard.
+# Runs when the container starts.
 
+# Ensure we start in /app
 cd /app
 
 # Show ASCII banner
 ./scripts/ascii_banner.sh
 
-# # Setup InfluxDB
+# If you needed InfluxDB setup (commented out now)
 # ./scripts/setup_influxdb.sh
 
-# Run initial metrics collection
+# Run initial metrics collection from /app
 ./scripts/run_all.sh
 
-
-# Update metrics.json periodically
+# Update metrics.json periodically from /app
 while true; do
   ./scripts/metrics_to_json.sh
   sleep 5
 done &
 
-# Start Node.js server
+# Start Node.js server from /app
 node web/server.js &
 
-# Generate initial reports
+# Generate initial reports from /app
 ./scripts/generate_reports.sh
 
-# Launch GUI dashboard automatically
+# Launch GUI dashboard from /app
 ./dashboard/dashboard.sh
 
 # Keep container alive
