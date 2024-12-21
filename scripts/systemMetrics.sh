@@ -2,18 +2,21 @@
 
 
 function get_cpu_performance(){
-    # (
-    #     while :; do
-    #     echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')"
-    #     top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
-    #     sleep 3
-    #     done
-    # ) | zenity --progress --title="CPU Performance" --width=500
-
-    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print  $1 }'
-
+    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+    (
+        while :; do
+        echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')" #for the text
+       
+        top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+        alert_check=$( top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]') #for the progress bar
+        if (( $(echo "$alert_check > 80" | bc -l) )); then
+            zenity --warning --title="High CPU Usage" --text="CPU usage is too high: $alert_check%" --width=300 &
+            break
+        fi
+        sleep 3
+        done
+    ) | zenity --progress --title="CPU Performance" --width=500
     
-      
 }
 
 
@@ -22,15 +25,14 @@ function get_cpu_temp(){
     # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
    
    
-    # (
-    # while :; do
+    while :; do
    
-    # echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
-    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
-    # sleep 3 
-    # done ) | zenity --progress --title="CPU Temperature"   --width=500
+    echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
+    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
+    sleep 3 
+    done 
 
-    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print  $1}'
+    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print  $1}'
 
     # temp_line=$(sensors | grep -m1 "Package id 0: ")
     # if [ -z "$temp_line" ]; then
@@ -49,7 +51,6 @@ function get_disk_usage(){
 
 
 }
-
 
 function get_smart_status(){
     sudo smartctl --all /dev/nvme0
@@ -127,26 +128,38 @@ function get_network_stats(){
    
 }
 
-
 function get_system_load(){
     uptime
 }
 
-
 function display_data(){
     heading="$1"
     data="$2"
-    zenity --info --no-wrap --text="<b>$heading</b>\n\n$data" --title="$heading" --width=500 --height=300
+    zenity --question --no-wrap --text="<b>$heading</b>\n\n$data" --title="$heading" \
+    --width=500 --height=300 \
+    --ok-label="OK" --cancel-label="Back" 
+    
+
+    if [ $? -eq 0 ] ; then
+        exit_page
+    else
+        selection_check
+    fi  
 }
 
-# function display_progress_bar(){
-#     title_name="$1"
-#     zenity --progress --title=$title_name --width=500
+function exit_page(){
+    zenity --info --title="Exit Page" --text="<b>Thanks BAAAYIE</b>" --width=500
+}
 
-# }
+function display_progress_bar(){
+    title_name="$1"
+    # data="$2"
+    (get_cpu_temp)|zenity --progress --title=$title_name --width=500
+}
 
 
 function choose_resource() {
+   
     selection=$(zenity --list \
         --title="Choose a Resource" \
         --text="Select the resource you want to check:" \
@@ -163,8 +176,19 @@ function choose_resource() {
     echo "$selection"
 }
 
+function main(){
+    zenity --info --title="Task Manager" \
+    --text=" Welcome to Task Manager by\
+ <b><span foreground='#ADD8E6' >m</span><span foreground='orange' font='12'>r</span><span foreground='pink' font='12'>z</span></b> :) \\ 
+    \n \n <span foreground='#90EE90'>click oki! to continue</span>" \
+    --ok-label="oki!" \
+    --width=500 
 
-function main() {
+    selection_check
+
+}
+
+function selection_check() {
     resource=$(choose_resource)
     if [ -z "$resource" ]; then
         zenity --error --text="No selection made!"
@@ -183,7 +207,7 @@ function systemMetrics() {
             ;;
         "2")
             data=$(get_cpu_temp)
-            # display_progress_bar "CPU Temperature"
+            # display_progress_bar "CPU Temperature" 
             # display_data "CPU Temperature" "$data" 
            
             ;;
