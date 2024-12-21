@@ -14,15 +14,15 @@
 
 
 function get_cpu_performance(){
-    (
-        while :; do
-        echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')"
-        top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
-        sleep 3
-        done
-    ) | zenity --progress --title="CPU Performance" --width=500
+    # (
+    #     while :; do
+    #     echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')"
+    #     top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+    #     sleep 3
+    #     done
+    # ) | zenity --progress --title="CPU Performance" --width=500
 
-    # top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print  $1 }'
+    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print  $1 }'
 
     
       
