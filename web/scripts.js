@@ -1,20 +1,7 @@
-async function fetchMetrics() {
-  const response = await fetch('/metrics');
-  try{
-    if(!response.ok){
-      console.error("Network byza");
-      return {error: 'Failed to fetch metrics'};
-    }
-    const data = await response.json();
-    console.log('metrics fetched ayaya', data);
-    return data;
-  }catch(error){
-    console.error('Error fetching metrics: ', error);
-    return{error: 'Fetch error'}
-  }
+// Establish a WebSocket connection to the server
+const socket = io();
 
-}
-
+// Function to create a chart
 function createChart(ctx, label, color) {
   return new Chart(ctx, {
     type: 'line',
@@ -23,7 +10,7 @@ function createChart(ctx, label, color) {
       datasets: [{
         label: label,
         data: [],
-        backgroundColor: color + '33',
+        backgroundColor: `${color}33`,
         borderColor: color,
         borderWidth: 2,
         fill: true
@@ -32,11 +19,11 @@ function createChart(ctx, label, color) {
     options: {
       responsive: true,
       scales: {
-        x: { 
+        x: {
           title: { display: true, text: 'Time' },
           ticks: { color: '#cfcfcf' }
         },
-        y: { 
+        y: {
           title: { display: true, text: 'Usage' },
           ticks: { color: '#cfcfcf' }
         }
@@ -61,55 +48,42 @@ const memChart = createChart(memCtx, 'Memory %', getComputedStyle(document.docum
 const diskChart = createChart(diskCtx, 'Disk %', getComputedStyle(document.documentElement).getPropertyValue('--disk-color').trim());
 const gpuChart = createChart(gpuCtx, 'GPU %', getComputedStyle(document.documentElement).getPropertyValue('--gpu-color').trim());
 
-async function updateCharts() {
-  const data = await fetchMetrics();
-  
-  const timeLabel = new Date(data.timestamp).toLocaleTimeString();
-
-  // CPU chart
-  cpuChart.data.labels.push(timeLabel);
-  cpuChart.data.datasets[0].data.push(data.cpu.usage); 
-  if (cpuChart.data.labels.length > 20) {
-    cpuChart.data.labels.shift();
-    cpuChart.data.datasets[0].data.shift();
+// Function to update charts with new data
+function updateChart(chart, label, dataPoint) {
+  chart.data.labels.push(label);
+  chart.data.datasets[0].data.push(dataPoint);
+  if (chart.data.labels.length > 20) {
+    chart.data.labels.shift();
+    chart.data.datasets[0].data.shift();
   }
-  cpuChart.update();
-
-  // Memory chart
-  memChart.data.labels.push(timeLabel);
-  // Assume data.memory is a numeric usage %
-  memChart.data.datasets[0].data.push(parseFloat(data.memory_usage || 0));
-  if (memChart.data.labels.length > 20) {
-    memChart.data.labels.shift();
-    memChart.data.datasets[0].data.shift();
-  }
-  memChart.update();
-
-  // Disk chart
-  diskChart.data.labels.push(timeLabel);
-  diskChart.data.datasets[0].data.push(parseFloat(data.disk || 0));
-  if (diskChart.data.labels.length > 20) {
-    diskChart.data.labels.shift();
-    diskChart.data.datasets[0].data.shift();
-  }
-  diskChart.update();
-
-  // GPU chart
-  gpuChart.data.labels.push(timeLabel);
-  gpuChart.data.datasets[0].data.push(parseFloat(data.gpu || 0));
-  if (gpuChart.data.labels.length > 20) {
-    gpuChart.data.labels.shift();
-    gpuChart.data.datasets[0].data.shift();
-  }
-  gpuChart.update();
-
-  // Update details if a chart is expanded
-  updateChartDetails(data);
+  chart.update();
 }
 
-setInterval(updateCharts, 5000);
+// Handle incoming metric updates from the server
+socket.on('metrics_update', (data) => {
+  const timeLabel = new Date(data.timestamp).toLocaleTimeString();
 
-// Chart Magnification and Details
+  // Update CPU chart
+  updateChart(cpuChart, timeLabel, parseFloat(data.cpu.usage));
+
+  // Update Memory chart
+  const memoryUsagePercent = (parseFloat(data.RAM.used) / parseFloat(data.RAM.total)) * 100;
+  updateChart(memChart, timeLabel, memoryUsagePercent);
+
+  // Update Disk chart
+  const diskUsagePercent = (parseFloat(data.Disk.used) / parseFloat(data.Disk.total)) * 100;
+  updateChart(diskChart, timeLabel, diskUsagePercent);
+
+  // Update GPU chart (if GPU data is available)
+  if (data.gpu && data.gpu.usage) {
+    updateChart(gpuChart, timeLabel, parseFloat(data.gpu.usage));
+  }
+
+  // Update chart details if a chart is expanded
+  updateChartDetails(data);
+});
+
+// Chart magnification and details
 const chartBoxes = document.querySelectorAll('.chart-box');
 let activeChart = null;
 
@@ -130,24 +104,12 @@ chartBoxes.forEach(box => {
 });
 
 function updateChartDetails(data) {
-  // Example of fetching JSON data from a file or an endpoint (replace with actual URL)
-
-
-  // data structure assumed:
-  // {
-  //   "timestamp": "2024-12-19T15:54:00Z",
-  //   "cpu": { "usage": 39, "temperature": 60 },
-  //   "memory": ...,
-  //   "disk": ...,
-  //   "gpu": ...
-  // }
-
   if (!activeChart) return;
 
   const details = activeChart.querySelector('.chart-details');
   const chartType = activeChart.getAttribute('data-chart');
 
-  details.innerHTML = ''; 
+  details.innerHTML = '';
 
   if (chartType === 'cpu') {
     details.innerHTML = `
@@ -164,7 +126,7 @@ function updateChartDetails(data) {
     `;
   } else if (chartType === 'gpu') {
     details.innerHTML = `
-      <p>GPU Usage: ${data.gpu || 'N/A'}%</p>
+      <p>GPU Usage: ${data.gpu.usage || 'N/A'}%</p>
     `;
   }
 }
@@ -172,6 +134,10 @@ function updateChartDetails(data) {
 // Generate Report Button
 const generateReportBtn = document.getElementById('generateReportBtn');
 generateReportBtn.addEventListener('click', async () => {
-  await fetch('/generate_report', { method: 'POST' });
-  alert('Report generated successfully!');
+  const response = await fetch('/generate_report', { method: 'POST' });
+  if (response.ok) {
+    alert('Report generated successfully!');
+  } else {
+    alert('Failed to generate report.');
+  }
 });

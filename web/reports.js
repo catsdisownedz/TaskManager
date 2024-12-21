@@ -39,8 +39,8 @@ async function fetchReports() {
   refreshReports();
 
   
-  // Example: toggling expanded class
-  li.addEventListener('click', () => {
-    li.classList.toggle('expanded');
-  });
+  // // Example: toggling expanded class
+  // li.addEventListener('click', () => {
+  //   li.classList.toggle('expanded');
+  // });
   

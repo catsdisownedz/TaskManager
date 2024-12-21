@@ -1,39 +1,64 @@
 services:
   system_monitor:
     build:
-        context: ..
-        dockerfile: ./docker/Dockerfile
+      context: ..
+      dockerfile: ./docker/Dockerfile
     container_name: system_monitor
     volumes:
       - ../scripts:/app/scripts
       - ../dashboard:/app/dashboard
       - ../reports:/app/reports
       - ../web:/app/web
-      # - ./entrypoint.sh:/app/entrypoint.sh
-      - ../data:/app/data 
+      - /app/web/node_modules
+      - ../python:/app/python
+      - ../data/previous_reports:/app/previous_reports
+      - ../docker/.env:/app/docker/.env
+      - /sys:/sys
+      - /run:/run
+      - /proc:/proc
+      - /dev:/dev  
+    cap_add:
+      - SYS_ADMIN
+      - SYS_RAWIO
     environment:
       - TZ=Etc/UTC
+      - INFLUXDB_URL=${INFLUXDB_URL}
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+      - INFLUXDB_ORG=${INFLUXDB_ORG}
+      - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
     command: nodemon --watch /app/web --exec node /app/web/server.js
-    # depends_on:
-    #   - influxdb
+    depends_on:
+      - influxdb
     ports:
       - 8080:8080
     tty: true
     stdin_open: true
+    privileged: true  
+    networks:
+      - TaskManagerNetwork
 
+  influxdb:
+    image: influxdb:2.0
+    ports:
+      - "8086:8086"
+    environment:
+      - INFLUXDB_INIT_MODE=setup
+      - INFLUXDB_INIT_USERNAME=${INFLUXDB_INIT_USERNAME}
+      - INFLUXDB_INIT_PASSWORD=${INFLUXDB_INIT_PASSWORD}
+      - INFLUXDB_INIT_ORG=${INFLUXDB_INIT_ORG}
+      - INFLUXDB_INIT_BUCKET=${INFLUXDB_INIT_BUCKET}
+      - INFLUXDB_INIT_ADMIN_TOKEN=${INFLUXDB_INIT_ADMIN_TOKEN}
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+    networks:
+      - TaskManagerNetwork
+    env_file:
+      - .env
+    restart: always
 
-  # influxdb:
-  #   image: influxdb:1.8
-  #   container_name: influxdb
-  #   environment:
-  #     - INFLUXDB_DB=metrics
-  #     - INFLUXDB_ADMIN_ENABLED=true
-  #     - INFLUXDB_USER=mrz
-  #     - INFLUXDB_USER_PASSWORD=kokomama
-  #   volumes:
-  #     - influxdb_data:/var/lib/influxdb
-  #   ports:
-  #     - "8086:8086"
+volumes:
+  influxdb_data:
 
-# volumes:
-#   influxdb_data:
+networks:
+  TaskManagerNetwork:
+    driver: bridge

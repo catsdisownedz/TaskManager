@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
-# entrypoint.sh
-# Runs when the container starts.
+
+# Load environment variables from .env file if it exists
+if [ -f "$(dirname "$0")/.env" ]; then
+  export $(grep -v '^#' "$(dirname "$0")/.env" | xargs)
+fi
+
+# Convert line endings to Unix style
+find /app -type f -name "*.sh" -exec dos2unix {} \;
 
 # Ensure we start in /app
 cd /app
@@ -8,26 +14,33 @@ cd /app
 # Show ASCII banner
 ./scripts/ascii_banner.sh
 
-# If you needed InfluxDB setup (commented out now)
-# ./scripts/setup_influxdb.sh
+set -e
 
-# Run initial metrics collection from /app
-./scripts/run_all.sh
+# Function to check InfluxDB readiness
+wait_for_influxdb() {
+  echo "Waiting for InfluxDB to be available..."
+  until curl -s "${INFLUXDB_URL}/ping" > /dev/null; do
+    sleep 1
+  done
+  echo "InfluxDB is available."
+}
 
-# Update metrics.json periodically from /app
-while true; do
-  ./scripts/metrics_to_json.sh
-  sleep 5
-done &
+wait_for_influxdb
 
-# Start Node.js server from /app
-node web/server.js &
+# Restore previous reports into InfluxDB
+if [ -d "/app/reports/previous_reports" ]; then
+  for report in /app/reports/previous_reports/*.json; do
+    if [ -f "$report" ]; then
+      python /app/python/process_metrics.py --restore "$report"
+    fi
+  done
+fi
 
-# Generate initial reports from /app
-./scripts/generate_reports.sh
+# Start metrics collection in the background
+#/app/scripts/metrics_to_json.sh &
 
-# Launch GUI dashboard from /app
-./dashboard/dashboard.sh
+# Start the Node.js server
+node /app/web/server.js
 
 # Keep container alive
 tail -f /dev/null

@@ -1,43 +1,80 @@
+require('dotenv').config();
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
-const app = express();
+const { InfluxDB, Point } = require('@influxdata/influxdb-client');
 
-// Serve static files
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+const metricsFilePath = path.join(__dirname, '../scripts/json_metrics.json');
+
+const url = process.env.INFLUXDB_URL;
+const token = process.env.INFLUXDB_TOKEN;
+const org = process.env.INFLUXDB_ORG;
+const bucket = process.env.INFLUXDB_BUCKET;
+
+// Initialize InfluxDB client
+const influxDB = new InfluxDB({ url, token });
+const writeApi = influxDB.getWriteApi(org, bucket, 'ns');
+
 app.use(express.static('web'));
 app.use(express.json());
 
-// Path to metrics file
-const metricsFilePath = path.join(__dirname, '../scripts/json_metrics.json');
 
-// Generate metrics every 5 seconds
-function updateMetrics() {
-  exec('/app/scripts/update_metrics.sh', (error) => {
+
+io.on('connection', (socket) => {
+  console.log('New client connected');
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
+  });
+});
+
+function collectAndProcessMetrics() {
+  exec('/app/scripts/metrics_to_json.sh', (error, stdout, stderr) => {
     if (error) {
-      console.error('Error updating metrics:', error);
-    } else {
-      console.log('Metrics updated successfully.');
+      console.error(`Error executing script: ${error.message}`);
+      return;
+    }
+    if (stderr) {
+      console.error(`Script error output: ${stderr}`);
+      return;
+    }
+    try {
+      const metrics = JSON.parse(stdout);
+      const point = new Point('system_metrics')
+        .timestamp(new Date(metrics.timestamp))
+        .floatField('cpu_usage', parseFloat(metrics.cpu.usage))
+        .floatField('cpu_temperature', parseFloat(metrics.cpu.temperature))
+        .floatField('disk_used', parseFloat(metrics.Disk.used))
+        .floatField('disk_total', parseFloat(metrics.Disk.total))
+        .floatField('ram_used', parseFloat(metrics.RAM.used))
+        .floatField('ram_total', parseFloat(metrics.RAM.total));
+
+      writeApi.writePoint(point);
+      io.emit('metrics_update', metrics);
+      console.log('Metrics processed and emitted successfully.');
+    } catch (parseError) {
+      console.error(`Error parsing metrics: ${parseError.message}`);
     }
   });
 }
 
-// Call updateMetrics every 5 seconds
-setInterval(updateMetrics, 5000);
+setInterval(collectAndProcessMetrics, 5000);
 
-// API endpoint to fetch metrics
-app.get('/metrics', (req, res) => {
-  fs.readFile(metricsFilePath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error reading metrics file:', err);
-      return res.status(500).json({ error: 'Metrics file not found' });
-    }
-    res.header('Content-Type', 'application/json');
-    res.send(data);
+process.on('exit', () => {
+  writeApi.close().then(() => {
+    console.log('InfluxDB write API closed.');
+  }).catch((error) => {
+    console.error(`Error closing InfluxDB write API: ${error.message}`);
   });
 });
 
-// Generate HTML report endpoint
+
 app.post('/generate_report', (req, res) => {
   exec('/app/scripts/generate_html_report.sh', (error) => {
     if (error) {
@@ -48,7 +85,6 @@ app.post('/generate_report', (req, res) => {
   });
 });
 
-// API endpoint to fetch reports
 app.get('/reports', (req, res) => {
   const reportsDir = path.join(__dirname, '../reports/html');
   fs.readdir(reportsDir, (err, files) => {
@@ -78,7 +114,6 @@ app.get('/reports', (req, res) => {
   });
 });
 
-// Endpoint to fetch individual report
 app.get('/reports/:filename', (req, res) => {
   const reportsDir = path.join(__dirname, '../reports/html');
   const filePath = path.join(reportsDir, req.params.filename);
@@ -88,7 +123,8 @@ app.get('/reports/:filename', (req, res) => {
   });
 });
 
+// Start the server
 const PORT = process.env.PORT || 8080;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
