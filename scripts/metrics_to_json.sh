@@ -47,7 +47,7 @@ EOF
 )
 
 # Output JSON to a file
-OUTPUT_FILE="json_metrics.json"
+OUTPUT_FILE="data.json"
 echo "$json_data" > "$OUTPUT_FILE"
 
 # Print confirmation
