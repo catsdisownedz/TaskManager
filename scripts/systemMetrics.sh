@@ -14,28 +14,20 @@
 
 
 function get_cpu_performance(){
-    flag=0
-    alert_check=0
+    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
     (
         while :; do
         echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')" #for the text
        
         top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
         alert_check=$( top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]') #for the progress bar
-        if [ "$alert_check" -gt 1 ]; then
-            flag=1
+        if (( $(echo "$alert_check > 80" | bc -l) )); then
+            zenity --warning --title="High CPU Usage" --text="CPU usage is too high: $alert_check%" --width=300 &
             break
-
         fi
         sleep 3
         done
     ) | zenity --progress --title="CPU Performance" --width=500
-
-        echo $alert_check
-        echo "hi what is wrong"
-    if [ $flag -eq 1 ]; then
-        zenity --warning --text="omg" 
-    fi
     
 }
 
@@ -45,7 +37,6 @@ function get_cpu_temp(){
     # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
    
    
-    
     while :; do
    
     echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
@@ -72,7 +63,6 @@ function get_disk_usage(){
 
 
 }
-
 
 function get_smart_status(){
     sudo smartctl --all /dev/nvme0
@@ -150,11 +140,9 @@ function get_network_stats(){
    
 }
 
-
 function get_system_load(){
     uptime
 }
-
 
 function display_data(){
     heading="$1"
@@ -172,14 +160,13 @@ function display_data(){
 }
 
 function exit_page(){
-    zenity --info --title="Exit Page" --text="<b>Thanks BAAAYIE</b>"
+    zenity --info --title="Exit Page" --text="<b>Thanks BAAAYIE</b>" --width=500
 }
 
 function display_progress_bar(){
     title_name="$1"
     # data="$2"
     (get_cpu_temp)|zenity --progress --title=$title_name --width=500
-
 }
 
 
@@ -232,7 +219,7 @@ function systemMetrics() {
             ;;
         "2")
             data=$(get_cpu_temp)
-            display_progress_bar "CPU Temperature" 
+            # display_progress_bar "CPU Temperature" 
             # display_data "CPU Temperature" "$data" 
            
             ;;
