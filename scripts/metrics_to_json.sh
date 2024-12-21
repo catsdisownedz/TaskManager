@@ -1,7 +1,10 @@
 #!/bin/bash
 
-# Source the system metrics functions
-source /app/scripts/systemMetrics.sh
+# Determine the directory of the current script
+SCRIPT_DIR=$(dirname "$0")
+
+# Source the system metrics functions using an absolute path
+source "$SCRIPT_DIR/systemMetrics.sh"
 
 # Collect metrics
 cpu_usage=$(get_cpu_performance)
@@ -16,10 +19,9 @@ total_memory=$(echo "$memory_usage" | awk '/^Used/ {print $5}')
 # Output metrics in JSON format
 cat <<EOF
 {
-  "timestamp": "$(date -u +"%Y-%m-%dT%H:%M:%SZ")",
+  "timestamp": "$(date +"%Y-%m-%d %H:%M:%S")",
   "cpu": {
-    "usage": "$cpu_usage",
-    "temperature": "$cpu_temp"
+    "usage": "$cpu_usage"
   },
   "Disk": {
     "used": "$used_disk_size",

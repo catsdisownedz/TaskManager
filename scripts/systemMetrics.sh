@@ -2,45 +2,61 @@
 
 
 function get_cpu_performance(){
-    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+
+    execution_source_check
+#     text_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print \"CPU usage: \" \$1 \" %\"}'"
+# progress_bar_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print \$1}' | tr -d '[:space:]'"
+
+#     # text_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ' "
+#     # progress_bar_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]'"
+
+#     display_progress_bar "CPU Performance" $text_command $progress_bar_command
     (
         while :; do
         echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')" #for the text
        
         top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
         alert_check=$( top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]') #for the progress bar
-        if (( $(echo "$alert_check > 80" | bc -l) )); then
-            zenity --warning --title="High CPU Usage" --text="CPU usage is too high: $alert_check%" --width=300 &
-            break
+        if checking_alerts $alert_check "High CPU Usage" "CPU usage is too high $alert_check"; then 
+            exit 
         fi
         sleep 3
         done
     ) | zenity --progress --title="CPU Performance" --width=500
+
     
 }
 
+# function display_progress_bar(){
+#     title_name="$1"
+#     text_command="$2"
+#     progress_bar_command="$3"
+#     (while :; do
+#     echo "# $(eval $text_command)"
+#     eval $progress_bar_command
+#     sleep 3 
+#     done ) | zenity --progress --title="$titlename" --width=500
+# }
 
 function get_cpu_temp(){
    
     # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
+    execution_source_check
    
-   
-    while :; do
+    (while :; do
    
     echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
     sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
+    alert_check=$(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}') #for the progress bar
+    if checking_alerts $alert_check "High CPU Temperature" "CPU Temperature is too high $alert_check"; then 
+        exit 
+    fi
     sleep 3 
-    done 
+    done ) | zenity --progress --title="CPU Temperature" --width=500
 
-    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print  $1}'
 
-    # temp_line=$(sensors | grep -m1 "Package id 0: ")
-    # if [ -z "$temp_line" ]; then
-    #     echo "CPU Temperature info not found."
-    # else
-    #     echo "$temp_line"
-    # fi
 }
+
 
 
 function get_disk_usage(){
@@ -62,8 +78,6 @@ function get_memory_usage(){
     free -h | awk '/^Mem:/ {print "Used RAM: "$3 " / " $2}'
 
 }
-
-
 
 function get_gpu_info() {
    
@@ -138,7 +152,6 @@ function display_data(){
     zenity --question --no-wrap --text="<b>$heading</b>\n\n$data" --title="$heading" \
     --width=500 --height=300 \
     --ok-label="OK" --cancel-label="Back" 
-    
 
     if [ $? -eq 0 ] ; then
         exit_page
@@ -147,16 +160,17 @@ function display_data(){
     fi  
 }
 
+function checking_alerts(){
+    alert_check=$1
+    if (( $(echo "$alert_check > 80" | bc -l) )); then
+            zenity --warning --title="$2" --text="$3" --width=300 
+            return 1
+    fi
+}
+
 function exit_page(){
     zenity --info --title="Exit Page" --text="<b>Thanks BAAAYIE</b>" --width=500
 }
-
-function display_progress_bar(){
-    title_name="$1"
-    # data="$2"
-    (get_cpu_temp)|zenity --progress --title=$title_name --width=500
-}
-
 
 function choose_resource() {
    
@@ -201,15 +215,10 @@ function systemMetrics() {
     resource=$1
     case $resource in
         "1")
-            data=$(get_cpu_performance)
-            # display_progress_bar "CPU Performance"
-            # display_data "CPU Performance" "CPU usage: $data %"
+            data=$(get_cpu_performance)          
             ;;
         "2")
             data=$(get_cpu_temp)
-            # display_progress_bar "CPU Temperature" 
-            # display_data "CPU Temperature" "$data" 
-           
             ;;
         "3")
             data=$(get_disk_usage)
@@ -241,7 +250,17 @@ function systemMetrics() {
     esac
 }
 
+function execution_source_check(){
+    if [ $flag -eq 0  ]; then
+        top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]'
+        exit
+    fi
+
+}
+
 # Ensure the main logic runs only if the script is executed directly
+flag=0
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    flag=1
     main
 fi

@@ -1,4 +1,6 @@
 require('dotenv').config();
+
+const logger = require('./utils/logger');
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -25,23 +27,21 @@ const writeApi = influxDB.getWriteApi(org, bucket, 'ns');
 app.use(express.static('web'));
 app.use(express.json());
 
-
-
 io.on('connection', (socket) => {
-  console.log('New client connected');
+  logger.info('New client connected via WebSocket');
   socket.on('disconnect', () => {
-    console.log('Client disconnected');
+    logger.info('Client disconnected');
   });
 });
 
 function collectAndProcessMetrics() {
   exec('/app/scripts/metrics_to_json.sh', (error, stdout, stderr) => {
     if (error) {
-      console.error(`Error executing script: ${error.message}`);
+      logger.error(`Error executing script: ${error.message}`);
       return;
     }
     if (stderr) {
-      console.error(`Script error output: ${stderr}`);
+      logger.error(`Script error output: ${stderr}`);
       return;
     }
     try {
@@ -57,9 +57,9 @@ function collectAndProcessMetrics() {
 
       writeApi.writePoint(point);
       io.emit('metrics_update', metrics);
-      console.log('Metrics processed and emitted successfully.');
+      logger.info('Metrics processed and emitted successfully');
     } catch (parseError) {
-      console.error(`Error parsing metrics: ${parseError.message}`);
+      logger.error(`Error parsing metrics: ${parseError.message}`);
     }
   });
 }
@@ -68,63 +68,61 @@ setInterval(collectAndProcessMetrics, 5000);
 
 process.on('exit', () => {
   writeApi.close().then(() => {
-    console.log('InfluxDB write API closed.');
+    logger.info('InfluxDB write API closed');
   }).catch((error) => {
-    console.error(`Error closing InfluxDB write API: ${error.message}`);
+    logger.error(`Error closing InfluxDB write API: ${error.message}`);
   });
 });
-
 
 app.post('/generate_report', (req, res) => {
   exec('/app/scripts/generate_html_report.sh', (error) => {
     if (error) {
-      console.error('Error generating report:', error);
+      logger.error('Error generating report:', error.message);
       return res.status(500).json({ error: 'Failed to generate report' });
     }
+    logger.info('Report generated successfully');
     res.json({ message: 'Report generated successfully' });
   });
 });
 
-app.get('/reports', (req, res) => {
-  const reportsDir = path.join(__dirname, '../reports/html');
-  fs.readdir(reportsDir, (err, files) => {
-    if (err) {
-      return res.json([]);
-    }
-    const htmlReports = files.filter(f => f.endsWith('.html'));
-    const reportsWithTime = htmlReports.map(filename => {
-      const match = filename.match(/report_(\d{8})_(\d{6})\.html/);
-      if (match) {
-        const datePart = match[1];
-        const timePart = match[2];
-        const year = datePart.slice(0, 4);
-        const month = datePart.slice(4, 6);
-        const day = datePart.slice(6, 8);
-        const hour = timePart.slice(0, 2);
-        const min = timePart.slice(2, 4);
-        const sec = timePart.slice(4, 6);
-        const dateObj = new Date(`${year}-${month}-${day}T${hour}:${min}:${sec}Z`);
-        return { filename, time: dateObj.toISOString() };
-      } else {
-        return { filename, time: '' };
-      }
+app.get('/reports', async (req, res) => {
+  try {
+    const queryApi = influxDB.getQueryApi(org);
+    const fluxQuery = `
+      from(bucket: "${bucket}")
+        |> range(start: -30d)
+        |> filter(fn: (r) => r._measurement == "report_metrics")
+        |> group(columns: ["filename", "_time"])
+        |> sort(columns: ["_time"], desc: true)
+    `;
+
+    const reports = [];
+    await queryApi.queryRows(fluxQuery, {
+      next(row, tableMeta) {
+        const data = tableMeta.toObject(row);
+        reports.push({
+          filename: data.filename,
+          time: data._time,
+        });
+      },
+      error(error) {
+        logger.error(`Error querying InfluxDB: ${error.message}`);
+        res.status(500).json({ error: "Failed to fetch reports from the database" });
+      },
+      complete() {
+        logger.info('Reports successfully fetched from InfluxDB');
+        res.json(reports);
+      },
     });
-    reportsWithTime.sort((a, b) => new Date(b.time) - new Date(a.time));
-    res.json(reportsWithTime);
-  });
+  } catch (error) {
+    logger.error(`Unexpected error fetching reports: ${error.message}`);
+    res.status(500).json({ error: "Failed to fetch reports" });
+  }
 });
 
-app.get('/reports/:filename', (req, res) => {
-  const reportsDir = path.join(__dirname, '../reports/html');
-  const filePath = path.join(reportsDir, req.params.filename);
-  fs.exists(filePath, (exists) => {
-    if (!exists) return res.status(404).send('Report not found');
-    res.sendFile(filePath);
-  });
-});
 
 // Start the server
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });

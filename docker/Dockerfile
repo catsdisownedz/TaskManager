@@ -48,7 +48,7 @@ COPY ./web/package*.json ./
 
 # Install Node.js dependencies
 RUN npm init -y
-RUN npm install express @influxdata/influxdb-client socket.io dotenv
+RUN npm install express @influxdata/influxdb-client socket.io dotenv winston
 
 # Install nodemon globally for development
 RUN npm install -g nodemon
