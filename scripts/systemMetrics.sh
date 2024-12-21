@@ -14,13 +14,36 @@
 
 
 function get_cpu_performance(){
-    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+    # (
+    #     while :; do
+    #     echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')"
+    #     top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
+    #     sleep 3
+    #     done
+    # ) | zenity --progress --title="CPU Performance" --width=500
+
+    top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print  $1 }'
+
+    
       
 }
 
 
 function get_cpu_temp(){
-    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
+   
+    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
+   
+   
+    # (
+    # while :; do
+   
+    # echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
+    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
+    # sleep 3 
+    # done ) | zenity --progress --title="CPU Temperature"   --width=500
+
+    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print  $1}'
+
     # temp_line=$(sensors | grep -m1 "Package id 0: ")
     # if [ -z "$temp_line" ]; then
     #     echo "CPU Temperature info not found."
@@ -128,6 +151,12 @@ function display_data(){
     zenity --info --no-wrap --text="<b>$heading</b>\n\n$data" --title="$heading" --width=500 --height=300
 }
 
+# function display_progress_bar(){
+#     title_name="$1"
+#     zenity --progress --title=$title_name --width=500
+
+# }
+
 
 function choose_resource() {
     selection=$(zenity --list \
@@ -161,11 +190,14 @@ function systemMetrics() {
     case $resource in
         "1")
             data=$(get_cpu_performance)
-            display_data "CPU Performance" "CPU usage: $data %"
+            # display_progress_bar "CPU Performance"
+            # display_data "CPU Performance" "CPU usage: $data %"
             ;;
         "2")
             data=$(get_cpu_temp)
-            display_data "CPU Temperature" "$data" 
+            # display_progress_bar "CPU Temperature"
+            # display_data "CPU Temperature" "$data" 
+           
             ;;
         "3")
             data=$(get_disk_usage)
@@ -197,5 +229,7 @@ function systemMetrics() {
     esac
 }
 
-main
-
+# Ensure the main logic runs only if the script is executed directly
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main
+fi

@@ -1,17 +1,17 @@
 {
-  "timestamp": "2024-12-20T17:08:25Z",
+  "timestamp": "2024-12-21T00:08:16Z",
   "cpu": {
-    "usage": "11.8",
-    "temperature": "+62.9°C"
+    "usage": "5.5",
+    "temperature": ""
   },
 
   "Disk":{
-    "used": "121G",
+    "used": "128G",
     "total":"487G"
   },
 
   "RAM":{
-    "used": "7.1Gi",
+    "used": "5.8Gi",
     "total":"14Gi"
   }
  

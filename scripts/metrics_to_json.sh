@@ -4,11 +4,12 @@
 source ./systemMetrics.sh
 
 
-# Output file
-# OUTPUT_FILE="metrics.json"
 
-# Get metrics
+
+# Get metrics from systemMetrics
+
 cpu_usage=$(get_cpu_performance)
+
 cpu_temp=$(get_cpu_temp)
 
 disk_usage=$(get_disk_usage)

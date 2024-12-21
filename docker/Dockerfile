@@ -26,7 +26,6 @@ RUN pip install --no-cache-dir gpustat
 WORKDIR /app
 
 COPY ./docker/entrypoint.sh /app/entrypoint.sh
-
 COPY ./scripts /app/scripts
 COPY ./dashboard /app/dashboard
 COPY ./reports /app/reports
@@ -37,6 +36,7 @@ RUN chmod -R +x /app
 
 WORKDIR /app/web
 RUN npm init -y && npm install express
+RUN npm install -g nodemon
 
 WORKDIR /app
 ENTRYPOINT ["/app/entrypoint.sh"]

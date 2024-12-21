@@ -1,7 +1,18 @@
 async function fetchMetrics() {
   const response = await fetch('/metrics');
-  const data = await response.json();
-  return data;
+  try{
+    if(!response.ok){
+      console.error("Network byza");
+      return {error: 'Failed to fetch metrics'};
+    }
+    const data = await response.json();
+    console.log('metrics fetched ayaya', data);
+    return data;
+  }catch(error){
+    console.error('Error fetching metrics: ', error);
+    return{error: 'Fetch error'}
+  }
+
 }
 
 function createChart(ctx, label, color) {
@@ -119,6 +130,9 @@ chartBoxes.forEach(box => {
 });
 
 function updateChartDetails(data) {
+  // Example of fetching JSON data from a file or an endpoint (replace with actual URL)
+
+
   // data structure assumed:
   // {
   //   "timestamp": "2024-12-19T15:54:00Z",
@@ -139,19 +153,18 @@ function updateChartDetails(data) {
     details.innerHTML = `
       <p>Usage: ${data.cpu.usage}%</p>
       <p>Temp: ${data.cpu.temperature || 'N/A'}°C</p>
-      <p>Processes: ${data.processes || 'N/A'}</p>
     `;
   } else if (chartType === 'memory') {
     details.innerHTML = `
-      <p>Memory Used: ${data.memory}</p>
+      <p>Memory Used: ${data.RAM.used} of ${data.RAM.total}</p>
     `;
   } else if (chartType === 'disk') {
     details.innerHTML = `
-      <p>Disk Usage: ${data.disk}</p>
+      <p>Disk Used: ${data.Disk.used} of ${data.Disk.total}</p>
     `;
   } else if (chartType === 'gpu') {
     details.innerHTML = `
-      <p>GPU Usage: ${data.gpu}</p>
+      <p>GPU Usage: ${data.gpu || 'N/A'}%</p>
     `;
   }
 }
