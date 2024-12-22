@@ -14,6 +14,7 @@ cd /app
 # Show ASCII banner
 ./scripts/ascii_banner.sh
 
+./scripts/systemMetrics.sh
 set -e
 
 # Function to check InfluxDB readiness

@@ -11,9 +11,39 @@ async function fetchReports() {
     return reports;
   } catch (error) {
     console.error(`Error fetching reports: ${error.message}`);
-    return [];
+    // Return mock data for testing purposes
+    return [
+      {
+        filename: '2024-12-22T12-00-00.log',
+        time: '2024-12-22T12:00:00Z',
+        cpu_usage: '45.5',
+        disk_used: '50.0',
+        disk_total: '100',
+        ram_used: '60.0',
+        ram_total: '100',
+      },
+      {
+        filename: '2024-12-22T12-05-00.log',
+        time: '2024-12-22T12:05:00Z',
+        cpu_usage: '55.2',
+        disk_used: '52.0',
+        disk_total: '100',
+        ram_used: '65.0',
+        ram_total: '100',
+      },
+      {
+        filename: '2024-12-22T12-10-00.log',
+        time: '2024-12-22T12:10:00Z',
+        cpu_usage: '50.1',
+        disk_used: '53.5',
+        disk_total: '100',
+        ram_used: '70.0',
+        ram_total: '100',
+      }
+    ];
   }
 }
+
 
 // Function to refresh the displayed reports
 async function refreshReports() {

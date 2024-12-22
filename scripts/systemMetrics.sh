@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-./static_json.sh
+# ./static_json.sh
+echo "entered the systemMetrics.sh"
 
 function get_cpu_performance(){
 
