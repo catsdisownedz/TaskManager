@@ -22,7 +22,8 @@ set -e
 #   echo "X server not ready, waiting..."
 #   sleep 1
 # done
-./scripts/systemMetrics.sh
+
+# ./scripts/systemMetrics.sh
 # Function to check InfluxDB readiness
 wait_for_influxdb() {
   echo "Waiting for InfluxDB to be available..."
