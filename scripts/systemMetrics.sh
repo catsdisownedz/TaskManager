@@ -91,7 +91,8 @@ function get_gpu_info() {
    if lspci | grep -i "NVIDIA" > /dev/null; then
         nvidia-smi
     elif lspci | grep -i "AMD" > /dev/null; then
-        radeontop
+        # radeontop -i | grep "GPU" | awk '{print $3}'
+        sensors | grep "edge" | awk '{print "gpu temp: " $2}'
 
         
     elif lspci | grep -i "Intel" > /dev/null; then
@@ -180,13 +181,13 @@ function exit_page(){
   --title="Exit Page" \
   --text="<b>Thanks BAAAYIE</b>" \
   --width=500 \
-  --cancel-label="Generate Repor" 
+  --cancel-label="Generate Report" 
   
 
    if [ $? -eq 0 ] ; then
         exit
     else
-        generate_report_file
+        
         exit
     fi  
 }
