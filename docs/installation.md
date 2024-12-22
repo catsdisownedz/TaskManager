@@ -1,24 +1,40 @@
-# Installation Instructions
+## **Installation Instructions**
 
 **What is this file?**  
-This file explains how to install and run the system.
+- Provides step-by-step instructions to install and run the system.
 
-## Steps
+---
 
-1. **Prerequisites:**  
-   - Ensure you have `git`, `docker`, and `docker-compose` installed on your host system.
-   - If you plan to run the Zenity GUI, ensure you have a desktop environment and Zenity installed on the host. Alternatively, run `docker` with a GUI forwarding setup or run the dashboard locally outside the container.
+### **Steps**
 
-2. **Clone the Repository:**  
+1. **Prerequisites**  
+   - Install the following on your host machine:
+     - `git`
+     - `docker`
+     - `docker-compose`  
+   - **For GUI Support**:
+     - Ensure `zenity` is installed if you plan to use the Zenity GUI.  
+     - On headless systems, configure Docker to support GUI forwarding.  
+
+2. **Clone the Repository**  
    ```bash
-   git clone https://github.com/catsdisownedz/TaskManager
+   git clone https://github.com/catsdisownedz/TaskManager.git
+   cd TaskManager
    ```
-3. **Navigate to the project directory**
 
-4. **Build and run the Docker Containers:**
+3. **Build and Run the Docker Containers**  
    ```bash
    docker-compose up -d
    ```
 
-5. **Acessing the Dashboard:**
-   ```bash
+4. **Access the System**  
+   - **Web Dashboard**: Visit `http://localhost:8080` in your browser.  
+   - **Zenity GUI**: Run the GUI by executing:  
+     ```bash
+     docker exec -it <container_name> /app/scripts/zenity_gui.sh
+     ```
+
+5. **View Reports**  
+   - Reports (Markdown and HTML) are stored in the `reports/` directory.  
+   - Access them via the dashboard or directly from the file system.
+

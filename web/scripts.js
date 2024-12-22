@@ -1,6 +1,7 @@
+
 // Establish a WebSocket connection to the server
 const socket = io();
-
+let activeChart = null; 
 // Function to create a chart
 const createChart = (context, label, data) => {
   return new Chart(context, {
@@ -10,7 +11,7 @@ const createChart = (context, label, data) => {
       datasets: [
         {
           data: [data, 100 - data],
-          backgroundColor: ['#FFC0CB', '#EEEEEE'], 
+          backgroundColor: ['#FFC0CB', '#EEEEEE'], // Pink for 'Used', light gray for 'Unused'
           borderWidth: 1,
         },
       ],
@@ -39,8 +40,9 @@ const gpuChart = createChart(gpuCtx, 'GPU %', getComputedStyle(document.document
 
 // Function to update charts with new data
 const updateChart = (chart, label, value, total = 100) => {
-  const usedValue = Math.max(0, parseFloat(value));
-  const unusedValue = Math.max(0, total - usedValue);
+  const usedValue = Math.max(0, parseFloat(value) || 0); // Ensure value is numeric
+  const totalValue = Math.max(usedValue, parseFloat(total) || 100); // Total must >= used
+  const unusedValue = Math.max(0, totalValue - usedValue);
 
   chart.data.labels = [label, 'Unused'];
   chart.data.datasets[0].data = [usedValue, unusedValue];
@@ -49,8 +51,7 @@ const updateChart = (chart, label, value, total = 100) => {
 
 // Handle incoming metric updates from the server
 socket.on('metrics_update', (data) => {
-  const timeLabel = new Date(data.timestamp).toLocaleTimeString();
-
+  console.log('Received metrics update:', data);
   // Update CPU chart
   updateChart(cpuChart, 'CPU Usage', parseFloat(data.cpu.usage));
 
@@ -83,7 +84,6 @@ function updateChartDetails(data) {
   if (chartType === 'cpu') {
     details.innerHTML = `
       <p>Usage: ${data.cpu.usage}%</p>
-      <p>Temp: ${data.cpu.temperature || 'N/A'}°C</p>
     `;
   } else if (chartType === 'memory') {
     details.innerHTML = `
@@ -110,3 +110,4 @@ generateReportBtn.addEventListener('click', async () => {
     alert('Failed to generate report.');
   }
 });
+// <p>Temp: ${data.cpu.temperature || 'N/A'}°C</p>

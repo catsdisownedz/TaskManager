@@ -36,6 +36,8 @@ services:
     privileged: true  
     networks:
       - TaskManagerNetwork
+    env_file:
+      - ../docker/.env
     logging:
       driver: "json-file"
       options:

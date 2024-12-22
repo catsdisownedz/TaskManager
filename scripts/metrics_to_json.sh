@@ -1,22 +1,34 @@
 #!/bin/bash
 
-# Determine the directory of the current script
-SCRIPT_DIR=$(dirname "$0")
+function get_cpu_performance() {
+    top -bn1 | grep '%Cpu(s):' | awk '{print int(100 - $8)}'
+}
 
-# Source the system metrics functions using an absolute path
-source "$SCRIPT_DIR/systemMetrics.sh"
+# function get_cpu_performance(){  
+#     top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print int($1)}'
+    
+# }
 
-# Collect metrics
-cpu_usage=$(get_cpu_performance)
-cpu_temp=$(get_cpu_temp)
-disk_usage=$(get_disk_usage)
-used_disk_size=$(echo "$disk_usage" | awk '/^Used/ {print $3}')
-total_disk_size=$(echo "$disk_usage" | awk '/^Used/ {print $5}')
-memory_usage=$(get_memory_usage)
-used_memory=$(echo "$memory_usage" | awk '/^Used/ {print $3}')
-total_memory=$(echo "$memory_usage" | awk '/^Used/ {print $5}')
+function get_disk_usage() {
+    df --output=used,size --total | tail -1 | awk '{print ($1/$2)*100}'
+}
 
-# Output metrics in JSON format
+
+
+function get_memory_usage() {
+    free | awk '/Mem:/ {print ($3/$2)*100}'
+}
+
+
+
+cpu_usage=$(get_cpu_performance 2>/dev/null || echo "0")
+disk_usage=$(get_disk_usage 2>/dev/null || echo "Used 0 / 0")
+# used_disk_size=$(echo "$disk_usage" | awk '/^Used/ {print $3}' || echo "0")
+# total_disk_size=$(echo "$disk_usage" | awk '/^Used/ {print $5}' || echo "0")
+memory_usage=$(get_memory_usage 2>/dev/null || echo "Used 0 / 0")
+# used_memory=$(echo "$memory_usage" | awk '/^Used/ {print $3}' || echo "0")
+# total_memory=$(echo "$memory_usage" | awk '/^Used/ {print $5}' || echo "0")
+
 cat <<EOF
 {
   "timestamp": "$(date +"%Y-%m-%d %H:%M:%S")",
@@ -24,12 +36,12 @@ cat <<EOF
     "usage": "$cpu_usage"
   },
   "Disk": {
-    "used": "$used_disk_size",
-    "total": "$total_disk_size"
+    "used": "$disk_usage",
+    "total": "100"
   },
   "RAM": {
-    "used": "$used_memory",
-    "total": "$total_memory"
+    "used": "$memory_usage",
+    "total": "100"
   }
 }
 EOF

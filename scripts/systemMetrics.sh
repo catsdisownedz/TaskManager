@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+./static_json.sh
 
 function get_cpu_performance(){
 
@@ -40,9 +41,6 @@ function get_cpu_performance(){
 
 function get_cpu_temp(){
    
-    # sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print $1}'
-    execution_source_check
-   
     (while :; do
    
     echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
@@ -64,6 +62,10 @@ function get_disk_usage(){
     df -h --total | head -n 1 
     df -h --total |tail -n 1
     df -h --total | awk '/^total/ {print "Used Disk: " $3 " / " $2}'
+    alert_check=$(df -h --total | awk '/^total/ {print ($3/$2)*100}')
+    if checking_alerts $alert_check "High Disk Usage" "Disk usage is too high:  $alert_check%" $alert_check; then 
+        exit 
+    fi
 
 
 }
@@ -76,23 +78,28 @@ function get_smart_status(){
 function get_memory_usage(){
     free -h #| column -t
     free -h | awk '/^Mem:/ {print "Used RAM: "$3 " / " $2}'
+    alert_check=$(free -h | awk '/^Mem:/ {print ($3/$2)*100}') 
+    if checking_alerts $alert_check "High RAM Usage" "RAM usage is too high $alert_check"; then 
+        exit 
+    fi
 
 }
 
 function get_gpu_info() {
    
     
-    if lspci | grep -i "NIVIDIA" ; then
+   if lspci | grep -i "NVIDIA" > /dev/null; then
         nvidia-smi
-
-    elif lspci | grep -i "AMD"; then
+    elif lspci | grep -i "AMD" > /dev/null; then
         radeontop
 
-    elif lspci | grep -i "Intel"; then
-        sudo intel_gpu_top
+        
+    elif lspci | grep -i "Intel" > /dev/null; then
+        intel_gpu_top
+    else
+        echo "No supported GPU found."
+fi
 
-
-    fi
 ############################################################
     #for NVIDIA, you might use `nvidia-smi`
     #for AMD, `radeontop`, but use lspci for basic info.
@@ -169,7 +176,19 @@ function checking_alerts(){
 }
 
 function exit_page(){
-    zenity --info --title="Exit Page" --text="<b>Thanks BAAAYIE</b>" --width=500
+    zenity --question \
+  --title="Exit Page" \
+  --text="<b>Thanks BAAAYIE</b>" \
+  --width=500 \
+  --cancel-label="Generate Repor" 
+  
+
+   if [ $? -eq 0 ] ; then
+        exit
+    else
+        generate_report_file
+        exit
+    fi  
 }
 
 function choose_resource() {
@@ -234,7 +253,7 @@ function systemMetrics() {
             ;;
         "6")
             data=$(get_gpu_info)
-            display_data "GPU Utilization & Health" "$data"
+            display_data "GPU Utilization and Health" "$data"
             ;;
         "7")
             data=$(get_network_stats)

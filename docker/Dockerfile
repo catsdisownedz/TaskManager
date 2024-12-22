@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pip \
     python3-venv \
     dos2unix \
+    jq\
 && rm -rf /var/lib/apt/lists/*
 
 # Create and activate a virtual environment for Python packages
@@ -36,6 +37,7 @@ COPY ./web /app/web
 
 # Convert line endings and set execute permissions
 RUN dos2unix /app/entrypoint.sh /app/scripts/*.sh
+RUN RUN chmod +x /app/ascii_banner.sh /app/scripts/*.sh
 RUN chmod +x /app/entrypoint.sh /app/scripts/*.sh
 RUN find /app -type f -name "*.sh" -exec dos2unix {} \;
 RUN chmod -R +x /app

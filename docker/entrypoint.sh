@@ -27,14 +27,14 @@ wait_for_influxdb() {
 
 wait_for_influxdb
 
-# Restore previous reports into InfluxDB
-if [ -d "/app/reports/previous_reports" ]; then
-  for report in /app/reports/previous_reports/*.json; do
-    if [ -f "$report" ]; then
-      python /app/python/process_metrics.py --restore "$report"
-    fi
-  done
-fi
+# # Restore previous reports into InfluxDB
+# if [ -d "/app/reports/previous_reports" ]; then
+#   for report in /app/reports/previous_reports/*.json; do
+#     if [ -f "$report" ]; then
+#       python /app/python/process_metrics.py --restore "$report"
+#     fi
+#   done
+# fi
 
 # Start metrics collection in the background
 #/app/scripts/metrics_to_json.sh &

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Metrics</title>
+  <style>
+    /* General Styling */
+    body {
+      font-family: 'Pixelify Sans', sans-serif;
+      margin: 20px;
+      background-color: #1e1e1e; /* Dark theme */
+      color: #ffffff; /* Light text */
+    }
+    h1 {
+      text-align: center;
+      color: #ffaaff; /* Light pink */
+    }
+    table {
+      width: 70%;
+      margin: 20px auto;
+      border-collapse: collapse;
+      background-color: #2d2d2d; /* Dark table background */
+      border: 1px solid #444; /* Dark border */
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #444;
+      text-align: left;
+    }
+    th {
+      background-color: #3a3a3a;
+      color: #ffaaff;
+    }
+    tr:nth-child(even) {
+      background-color: #353535;
+    }
+    tr:hover {
+      background-color: #444444;
+    }
+
+    /* Report List Styling */
+    .report-list ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .report-list ul li {
+      margin: 10px 0;
+      font-family: 'Tiny5', sans-serif;
+      transition: background-color 0.2s ease;
+      position: relative;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #2d2d2d;
+    }
+    .report-list ul li:hover {
+      background-color: #e6e6fa; /* Lavender hover color */
+      color: #1e1e1e;
+    }
+    .report-list ul li a {
+      color: #82b1ff;
+      text-decoration: none;
+    }
+    .report-list ul li a:hover {
+      text-decoration: underline;
+      color: #ffaaff;
+    }
+    .report-list ul li .report-content {
+      display: none;
+      margin-top: 10px;
+      font-size: 14px;
+      background: #444;
+      border-radius: 8px;
+      padding: 10px;
+      color: #ffffff;
+      font-family: 'Doto', sans-serif;
+    }
+    .report-list ul li.expanded .report-content {
+      display: block;
+    }
+    .report-list ul li .report-content h3 {
+      margin-top: 0;
+      color: #ffaaff;
+      font-family: 'Micro 5', sans-serif;
+    }
+    .report-list ul li .report-content p {
+      margin: 5px 0;
+      color: #cfcfcf;
+      font-family: 'Tiny5', sans-serif;
+    }
+  </style>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Micro+5&family=Tiny5&family=Doto&family=Pixelify+Sans&display=swap" rel="stylesheet">
+</head>
+<body>
+  <h1>System Metrics</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Report</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody id="ReportTable">
+    </tbody>
+  </table>
+
+
+
+  <script>
+    // Function to render metrics
+    const renderMetrics = (data) => {
+      const tableBody = document.getElementById('ReportTable');
+      tableBody.innerHTML = `
+        <tr>
+          <td>Timestamp</td>
+          <td>${data.timestamp}</td>
+        </tr>
+        <tr>
+          <td>CPU Usage</td>
+          <td>${data.cpu.usage}%</td>
+        </tr>
+        <tr>
+          <td>Disk Used</td>
+          <td>${data.Disk.used}</td>
+        </tr>
+        <tr>
+          <td>Disk Total</td>
+          <td>${data.Disk.total}</td>
+        </tr>
+        <tr>
+          <td>RAM Used</td>
+          <td>${data.RAM.used}</td>
+        </tr>
+        <tr>
+          <td>RAM Total</td>
+          <td>${data.RAM.total}</td>
+        </tr>
+      `;
+    };
+
+    // Fetch JSON data from the file
+    const fetchData = async () => {
+      try {
+        const response = await fetch('../scripts/data.json'); // Relative path to the file
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        renderMetrics(data);
+      } catch (error) {
+        console.error('Error fetching the JSON data:', error);
+      }
+    };
+
+    <!-- Call the fetchData function on page load -->
+    fetchData();
+  </script>
+</body>
+</html>
