@@ -1,4 +1,4 @@
-FROM node:18-slim
+FROM ubuntu:22.04
 
 # Install necessary packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,13 +12,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     zenity \
     radeontop \
-    intel-gpu-tools \
+    # intel-gpu-tools \
     python3 \
     python3-pip \
     python3-venv \
     dos2unix \
-    jq\
-&& rm -rf /var/lib/apt/lists/*
+    jq \
+    gnupg \
+    ca-certificates \
+    build-essential \
+    libssl-dev \
+    libc6 \
+    libc6-dev \
+    libgcc-9-dev \
+    libstdc++-9-dev \
+    libffi-dev \
+    zlib1g \
+    zlib1g-dev \
+    xz-utils \
+    git \
+    wget \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Verify Node.js installation
+RUN node -v && npm -v
 
 # Create and activate a virtual environment for Python packages
 RUN python3 -m venv /opt/venv
@@ -37,7 +56,6 @@ COPY ./web /app/web
 
 # Convert line endings and set execute permissions
 RUN dos2unix /app/entrypoint.sh /app/scripts/*.sh
-RUN RUN chmod +x /app/ascii_banner.sh /app/scripts/*.sh
 RUN chmod +x /app/entrypoint.sh /app/scripts/*.sh
 RUN find /app -type f -name "*.sh" -exec dos2unix {} \;
 RUN chmod -R +x /app
