@@ -5,18 +5,24 @@ if [ -f "$(dirname "$0")/.env" ]; then
   export $(grep -v '^#' "$(dirname "$0")/.env" | xargs)
 fi
 
+./scripts/ascii_banner.sh
+
 # Convert line endings to Unix style
 find /app -type f -name "*.sh" -exec dos2unix {} \;
 
 # Ensure we start in /app
 cd /app
 
-# Show ASCII banner
-./scripts/ascii_banner.sh
 
-./scripts/systemMetrics.sh
 set -e
 
+
+# echo "Waiting for X server to be available..."
+# while ! xdpyinfo -display $DISPLAY > /dev/null 2>&1; do
+#   echo "X server not ready, waiting..."
+#   sleep 1
+# done
+./scripts/systemMetrics.sh
 # Function to check InfluxDB readiness
 wait_for_influxdb() {
   echo "Waiting for InfluxDB to be available..."

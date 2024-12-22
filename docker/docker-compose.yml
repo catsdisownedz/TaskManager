@@ -17,6 +17,7 @@ services:
       - /run:/run
       - /proc:/proc
       - /dev:/dev  
+      - /tmp/.X11-unix:/tmp/.X11-unix
     cap_add:
       - SYS_ADMIN
       - SYS_RAWIO
@@ -26,6 +27,7 @@ services:
       - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
       - INFLUXDB_ORG=${INFLUXDB_ORG}
       - INFLUXDB_BUCKET=${INFLUXDB_BUCKET}
+      - DISPLAY=${DISPLAY}
     command: nodemon --watch /app/web --exec node /app/web/server.js
     depends_on:
       - influxdb

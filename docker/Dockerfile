@@ -1,8 +1,10 @@
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 # Install necessary packages
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
+        gnupg \
+        ca-certificates \
         bash \
         coreutils \
         grep \
@@ -18,8 +20,6 @@ RUN apt-get update && \
         python3-venv \
         dos2unix \
         jq \
-        gnupg \
-        ca-certificates \
         build-essential \
         libssl-dev \
         libc6 \
@@ -31,11 +31,14 @@ RUN apt-get update && \
         zlib1g-dev \
         xz-utils \
         git \
-        wget && \
+        wget \
+        libegl1 \
+        libgl1 \
+        dbus-x11 \
+        x11-apps && \
     curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs && \
     rm -rf /var/lib/apt/lists/*
-
 
 # Verify Node.js installation
 RUN node -v && npm -v
