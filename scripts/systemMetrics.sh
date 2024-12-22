@@ -5,30 +5,37 @@ echo "entered the systemMetrics.sh"
 
 function get_cpu_performance(){
 
-    execution_source_check
-#     text_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print \"CPU usage: \" \$1 \" %\"}'"
-# progress_bar_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print \$1}' | tr -d '[:space:]'"
-
-#     # text_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ' "
-#     # progress_bar_command="top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]'"
-
-#     display_progress_bar "CPU Performance" $text_command $progress_bar_command
     (
         while :; do
         echo "# $(top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print "CPU usage: " $1 " %"} ')" #for the text
        
         top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}'
-        alert_check=$( top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]') #for the progress bar
-        if checking_alerts $alert_check "High CPU Usage" "CPU usage is too high $alert_check"; then 
-            exit 
-        fi
         sleep 3
         done
     ) | zenity --progress --title="CPU Performance" --width=500
 
+    alert_check=$( top -bn1 | grep '%Cpu(s):' | cut -d':' -f2 | awk '{print $1}' |tr -d '[:space:]') 
+    if checking_alerts $alert_check "High CPU Usage" "CPU usage is too high $alert_check"; then 
+        exit 
+    fi
     
 }
 
+function get_cpu_temp(){
+    (while :; do
+   
+    echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
+    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
+    sleep 3 
+    done ) | zenity --progress --title="CPU Temperature" --width=500
+   
+    alert_check=$(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}') 
+    if checking_alerts $alert_check "High CPU Temperature" "CPU Temperature is too high $alert_check"; then 
+        exit 
+    fi
+
+
+}
 # function display_progress_bar(){
 #     title_name="$1"
 #     text_command="$2"
@@ -39,23 +46,6 @@ function get_cpu_performance(){
 #     sleep 3 
 #     done ) | zenity --progress --title="$titlename" --width=500
 # }
-
-function get_cpu_temp(){
-   
-    (while :; do
-   
-    echo "# $(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{print "current temp: " $1}')"
-    sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}'
-    alert_check=$(sensors | grep 'Tctl:' | cut -d ':' -f2 |awk '{gsub(/[^0-9.]/, ""); print}') #for the progress bar
-    if checking_alerts $alert_check "High CPU Temperature" "CPU Temperature is too high $alert_check"; then 
-        exit 
-    fi
-    sleep 3 
-    done ) | zenity --progress --title="CPU Temperature" --width=500
-
-
-}
-
 
 
 function get_disk_usage(){
@@ -71,8 +61,12 @@ function get_disk_usage(){
 
 }
 
+#hard disk's health
 function get_smart_status(){
-    sudo smartctl --all /dev/nvme0
+    sudo smartctl --all /dev/nvme0 | awk '/=== START OF SMART DATA SECTION ===/{exit} {print}'
+    # smartctl --all /dev/nvme0
+    # smartctl --health /ded/nvme0
+    # smartctl --all 
 }
 
 
@@ -93,55 +87,13 @@ function get_gpu_info() {
         nvidia-smi
     elif lspci | grep -i "AMD" > /dev/null; then
         # radeontop -i | grep "GPU" | awk '{print $3}'
-        sensors | grep "edge" | awk '{print "gpu temp: " $2}'
-
+        sensors | grep "edge" | awk '{print "GPU temp: " $2}'
         
     elif lspci | grep -i "Intel" > /dev/null; then
         intel_gpu_top
     else
         echo "No supported GPU found."
-fi
-
-############################################################
-    #for NVIDIA, you might use `nvidia-smi`
-    #for AMD, `radeontop`, but use lspci for basic info.
-    # gpu_line=$(lspci | grep -i 'vga\|3d\|2d')
-    # if [ -z "$gpu_line" ]; then
-    #     echo "No dedicated GPU found or unable to detect GPU usage."
-    # else
-    #     echo "GPU Info:"
-    #     echo "$gpu_line"
-    #     echo
-    #     echo "For more detailed GPU stats, consider installing specific GPU tools like 'nvidia-smi' or 'radeontop'."
-    # fi
-    # lspci | grep -i 'vga\|3d\|display'
-    # lspci | head -n 3
-    # if lspci | grep -i nvidia > /dev/null 2>&1; then
-    #     # NVIDIA GPU
-    #     output=$(nvidia-smi)
-    #     zenity --info --text="<b>NVIDIA GPU Information</b>\n\n$output"
-    # elif lspci | grep -i 'amd' | grep -i 'vga' > /dev/null 2>&1; then
-    #     # AMD GPU
-    #     # Ensure radeontop is installed
-    #     output=$(radeontop -b -l 1 2>/dev/null)
-    #     if [ -z "$output" ]; then
-    #         zenity --info --text="AMD GPU detected but radeontop is not installed or failed to run."
-    #     else
-    #         zenity --info --text="<b>AMD GPU Information (radeontop)</b>\n\n$output"
-    #     fi
-    # elif lspci | grep -i 'intel' | grep -i 'vga' > /dev/null 2>&1; then
-    #     # Intel Integrated GPU
-    #     # intel_gpu_top should be installed for detailed metrics
-    #     output=$(intel_gpu_top -l 1 2>/dev/null)
-    #     if [ -z "$output" ]; then
-    #         zenity --info --text="Intel GPU detected but intel_gpu_top is not installed or failed to run."
-    #     else
-    #         zenity --info --text="<b>Intel GPU Information</b>\n\n$output"
-    #     fi
-    # else
-    #     zenity --info --text="No supported GPU detected or tools not installed."
-    # fi
-   
+fi   
     
 }
 
