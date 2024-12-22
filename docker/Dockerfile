@@ -1,40 +1,41 @@
 FROM ubuntu:22.04
 
 # Install necessary packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash \
-    coreutils \
-    grep \
-    sed \
-    lm-sensors \
-    util-linux \
-    smartmontools \
-    curl \
-    zenity \
-    radeontop \
-    # intel-gpu-tools \
-    python3 \
-    python3-pip \
-    python3-venv \
-    dos2unix \
-    jq \
-    gnupg \
-    ca-certificates \
-    build-essential \
-    libssl-dev \
-    libc6 \
-    libc6-dev \
-    libgcc-9-dev \
-    libstdc++-9-dev \
-    libffi-dev \
-    zlib1g \
-    zlib1g-dev \
-    xz-utils \
-    git \
-    wget \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        coreutils \
+        grep \
+        sed \
+        lm-sensors \
+        util-linux \
+        smartmontools \
+        curl \
+        zenity \
+        radeontop \
+        python3 \
+        python3-pip \
+        python3-venv \
+        dos2unix \
+        jq \
+        gnupg \
+        ca-certificates \
+        build-essential \
+        libssl-dev \
+        libc6 \
+        libc6-dev \
+        libgcc-9-dev \
+        libstdc++-9-dev \
+        libffi-dev \
+        zlib1g \
+        zlib1g-dev \
+        xz-utils \
+        git \
+        wget && \
+    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
+
 
 # Verify Node.js installation
 RUN node -v && npm -v
@@ -50,30 +51,22 @@ WORKDIR /app
 # Copy application files
 COPY ./docker/entrypoint.sh /app/entrypoint.sh
 COPY ./scripts /app/scripts
-COPY ./dashboard /app/dashboard
 COPY ./reports /app/reports
 COPY ./web /app/web
 
 # Convert line endings and set execute permissions
-RUN dos2unix /app/entrypoint.sh /app/scripts/*.sh
-RUN chmod +x /app/entrypoint.sh /app/scripts/*.sh
-RUN find /app -type f -name "*.sh" -exec dos2unix {} \;
-RUN chmod -R +x /app
+RUN find /app -type f -name "*.sh" -exec dos2unix {} + && chmod +x /app/entrypoint.sh /app/scripts/*.sh
 
 # Set working directory for Node.js application
 WORKDIR /app/web
-
-# Copy package.json and package-lock.json
 COPY ./web/package*.json ./
 
 # Install Node.js dependencies
-RUN npm init -y
 RUN npm install express @influxdata/influxdb-client socket.io dotenv winston
 
 # Install nodemon globally for development
 RUN npm install -g nodemon
 
-COPY . .
 # Set working directory back to /app
 WORKDIR /app
 
