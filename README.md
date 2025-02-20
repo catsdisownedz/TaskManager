@@ -131,3 +131,10 @@ Contributions are welcome! Please submit issues or pull requests to improve the 
 ---
 
 This updated README should clearly explain the project's features and functionality while reflecting the current state of your system monitoring solution.
+
+## **Usage Example**
+
+![Home Page](/ReadmeMedia/pic1.png)
+![Performance Check Menu](/ReadmeMedia/pic2.png)
+![CPU Temperature](/ReadmeMedia/pic3.png)
+![Memory Consupmtion](/ReadmeMedia/pic4.png)
